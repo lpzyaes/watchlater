@@ -30,18 +30,23 @@ import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.R
+import com.lambdasoup.watchlater.data.YoutubeRepository
 import com.lambdasoup.watchlater.viewmodel.LauncherViewModel
 import com.lambdasoup.watchlater.viewmodel.LauncherViewModel.Event
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class LauncherActivity : AppCompatActivity() {
 
     private val vm: LauncherViewModel by viewModel()
+    private val youtubeRepository: YoutubeRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +91,10 @@ class LauncherActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_api_key -> {
+                showApiKeyDialog()
+                true
+            }
             R.id.menu_about -> {
                 startActivity(Intent(this, AboutActivity::class.java))
                 true
@@ -104,6 +113,34 @@ class LauncherActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showApiKeyDialog() {
+        val currentKey = youtubeRepository.getApiKey() ?: ""
+        val editText = EditText(this).apply {
+            hint = "AIzaSy..."
+            setText(currentKey)
+            setSelection(text.length)
+            setSingleLine()
+            val padding = (16 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding, padding, padding)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_api_key_title)
+            .setMessage(R.string.dialog_api_key_message)
+            .setView(editText)
+            .setPositiveButton(R.string.dialog_save) { _, _ ->
+                val newKey = editText.text.toString().trim()
+                youtubeRepository.setApiKey(newKey.ifEmpty { null })
+                Toast.makeText(this, R.string.api_key_saved, Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton(R.string.dialog_clear) { _, _ ->
+                youtubeRepository.setApiKey(null)
+                Toast.makeText(this, R.string.api_key_cleared, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun openExampleVideo() {

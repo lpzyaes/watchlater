@@ -21,36 +21,48 @@
  */
 
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 
 def version_major = 2
 def version_minor = 3
 def version_patch = 4
 
 android {
-    compileSdkVersion 32
+    namespace 'com.lambdasoup.watchlater'
+    compileSdk 36
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+    buildFeatures {
+        buildConfig true
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
         applicationId "com.lambdasoup.watchlater"
-        minSdkVersion 23
-        targetSdkVersion 32
+        minSdk 23
+        targetSdk 36
         versionCode version_major * 10000 + version_minor * 100 + version_patch * 1
         versionName "$version_major.$version_minor.$version_patch"
-        // testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunner "io.cucumber.android.runner.CucumberAndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "YOUTUBE_API_KEY", "\"${project.findProperty('YOUTUBE_API_KEY') ?: System.getenv('YOUTUBE_API_KEY') ?: ''}\""
+    }
+
+    signingConfigs {
+        debugConfig {
+            storeFile file("${rootDir}/debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debugConfig
+        }
+
         r8debug {
             initWith buildTypes.debug
 
@@ -76,8 +88,8 @@ android {
 dependencies {
     implementation project(':tea')
     
-    kapt 'com.squareup.moshi:moshi-kotlin-codegen:1.13.0'
-    implementation "com.squareup.moshi:moshi:1.13.0"
+    implementation "com.squareup.moshi:moshi:1.15.2"
+    implementation "com.squareup.moshi:moshi-kotlin:1.15.2"
 
     implementation(platform('com.squareup.okhttp3:okhttp-bom:4.9.0'))
     implementation 'com.squareup.okhttp3:okhttp'
@@ -94,7 +106,7 @@ dependencies {
     implementation "androidx.core:core-ktx:1.7.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0"
     implementation 'androidx.activity:activity-ktx:1.4.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "androidx.preference:preference-ktx:1.2.0"
     implementation "io.insert-koin:koin-android:3.1.5"
 

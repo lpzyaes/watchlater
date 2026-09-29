@@ -77,9 +77,8 @@ class Tea<Model, Msg>(
                     processAndRender(msg)
                 }
             } catch (t: Throwable) {
-                engine.post {
-                    throw RuntimeException("Tea task executor threw exception", t)
-                }
+                engine.log("Tea task executor error: ${t.message}")
+                Log.e("TEA", "Tea task executor threw exception", t)
             }
         }
     }

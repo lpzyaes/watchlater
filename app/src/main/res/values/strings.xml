@@ -68,5 +68,17 @@
     <string name="playlist_selection_edit">Edit playlists</string>
     <string name="playlist_selection_create">Create playlist</string>
     <string name="error_invalid_video_id">Link has invalid video ID</string>
-    <string name="error_video_info_no_account">Video info can not be displayed without account</string>
+    <string name="error_video_info_no_account">Video info cannot be displayed. Please set a YouTube API key in the menu or select an account.</string>
+    <string name="menu_api_key">YouTube API Key</string>
+    <string name="choose_account_system">Add or choose another account…</string>
+    <string name="enter_account_manually">Enter Google account email manually…</string>
+    <string name="dialog_api_key_title">YouTube API Key</string>
+    <string name="dialog_api_key_message">Enter your YouTube Data API v3 key from Google Cloud Console to enable video previews directly.</string>
+    <string name="dialog_save">Save</string>
+    <string name="dialog_clear">Clear</string>
+    <string name="api_key_saved">YouTube API key saved</string>
+    <string name="api_key_cleared">YouTube API key cleared</string>
+    <string name="enter_account_title">Enter Google Account</string>
+    <string name="enter_account_hint">user@gmail.com</string>
+    <string name="error_account_picker">Could not open account picker</string>
 </resources>

@@ -1,0 +1,6 @@
+{
+  "name": "Watch Later",
+  "description": "Watch Later companion app for saving and queuing videos",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

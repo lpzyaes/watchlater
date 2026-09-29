@@ -43,13 +43,17 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.R
+import com.lambdasoup.watchlater.data.AccountRepository
 import com.lambdasoup.watchlater.data.YoutubeRepository
 import com.lambdasoup.watchlater.viewmodel.AddViewModel
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
     private val vm: AddViewModel by viewModel()
+    private val accountRepository: AccountRepository by inject()
+    private val youtubeRepository: YoutubeRepository by inject()
 
     private lateinit var actionView: ActionView
     private lateinit var permissionsView: PermissionsView
@@ -203,10 +207,12 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
     }
 
     private fun onRequestAccountResult(resultCode: Int, data: Intent?) {
-        if (resultCode == RESULT_OK) {
-            val name = data!!.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+        if (resultCode == RESULT_OK && data != null) {
+            val name = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
             val type = data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE)
-            vm.setAccount(Account(name, type))
+            if (name != null && type != null) {
+                vm.setAccount(Account(name, type))
+            }
         }
     }
 
@@ -230,6 +236,10 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_api_key -> {
+                showApiKeyDialog()
+                true
+            }
             R.id.menu_about -> {
                 startActivity(Intent(this, AboutActivity::class.java))
                 true
@@ -251,8 +261,93 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
     }
 
     private fun askForAccount() {
-        val intent = newChooseAccountIntent()
-        startActivityForResult(intent, REQUEST_ACCOUNT)
+        val accounts = accountRepository.getAvailableAccounts()
+        val items = mutableListOf<String>()
+        val actions = mutableListOf<() -> Unit>()
+
+        if (accounts.isNotEmpty()) {
+            for (acc in accounts) {
+                items.add(acc.name)
+                actions.add {
+                    vm.setAccount(acc)
+                }
+            }
+        }
+
+        items.add(getString(R.string.choose_account_system))
+        actions.add {
+            try {
+                val intent = newChooseAccountIntent()
+                startActivityForResult(intent, REQUEST_ACCOUNT)
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.error_account_picker, Toast.LENGTH_SHORT).show()
+                showManualAccountDialog()
+            }
+        }
+
+        items.add(getString(R.string.enter_account_manually))
+        actions.add {
+            showManualAccountDialog()
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.choose_account)
+            .setItems(items.toTypedArray()) { _, which ->
+                actions[which].invoke()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showManualAccountDialog() {
+        val editText = android.widget.EditText(this).apply {
+            hint = getString(R.string.enter_account_hint)
+            setSingleLine()
+            val padding = (16 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding, padding, padding)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.enter_account_title)
+            .setView(editText)
+            .setPositiveButton(R.string.dialog_save) { _, _ ->
+                val email = editText.text.toString().trim()
+                if (email.isNotEmpty()) {
+                    vm.setAccount(Account(email, ACCOUNT_TYPE_GOOGLE))
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showApiKeyDialog() {
+        val currentKey = youtubeRepository.getApiKey() ?: ""
+        val editText = android.widget.EditText(this).apply {
+            hint = "AIzaSy..."
+            setText(currentKey)
+            setSelection(text.length)
+            setSingleLine()
+            val padding = (16 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding, padding, padding)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_api_key_title)
+            .setMessage(R.string.dialog_api_key_message)
+            .setView(editText)
+            .setPositiveButton(R.string.dialog_save) { _, _ ->
+                val newKey = editText.text.toString().trim()
+                youtubeRepository.setApiKey(newKey.ifEmpty { null })
+                Toast.makeText(this, R.string.api_key_saved, Toast.LENGTH_SHORT).show()
+                intent.data?.let { vm.setVideoUri(it) }
+            }
+            .setNeutralButton(R.string.dialog_clear) { _, _ ->
+                youtubeRepository.setApiKey(null)
+                Toast.makeText(this, R.string.api_key_cleared, Toast.LENGTH_SHORT).show()
+                intent.data?.let { vm.setVideoUri(it) }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun tryAcquireAccountsPermission() {

@@ -46,7 +46,7 @@ class AddViewModel(
     private val videoIdParser: VideoIdParser,
 ) : ViewModel() {
 
-    private val getVideoInfo = Cmd.task<Msg, String, String, VideoInfoResult> { videoId, token ->
+    private val getVideoInfo = Cmd.task<Msg, String, String?, VideoInfoResult> { videoId, token ->
         youtubeRepository.getVideoInfo(videoId, token)
     }
 
@@ -154,8 +154,14 @@ class AddViewModel(
                 is SetVideoUri -> {
                     val videoId = videoIdParser.parseVideoId(msg.uri)
                     if (videoId != null) {
-                        model.copy(videoId = videoId) *
-                                getAuthToken { token -> OnVideoInfoTokenResult(token, videoId) }
+                        val hasApiKey = !youtubeRepository.getApiKey().isNullOrEmpty()
+                        if (model.account == null && hasApiKey) {
+                            model.copy(videoId = videoId) *
+                                    getVideoInfo(videoId, null) { OnVideoInfoResult(it) }
+                        } else {
+                            model.copy(videoId = videoId) *
+                                    getAuthToken { token -> OnVideoInfoTokenResult(token, videoId) }
+                        }
                     } else {
                         model.copy(
                                 videoId = null,
@@ -165,8 +171,14 @@ class AddViewModel(
                 }
 
                 is OnVideoInfoTokenResult -> when (msg.result) {
-                    is AuthTokenResult.Error ->
-                        model.copy(videoInfo = VideoInfo.Error(NoAccount)) * Cmd.none()
+                    is AuthTokenResult.Error -> {
+                        val hasApiKey = !youtubeRepository.getApiKey().isNullOrEmpty()
+                        if (hasApiKey) {
+                            model * getVideoInfo(msg.videoId, null) { OnVideoInfoResult(it) }
+                        } else {
+                            model.copy(videoInfo = VideoInfo.Error(NoAccount)) * Cmd.none()
+                        }
+                    }
                     is AuthTokenResult.AuthToken ->
                         model * getVideoInfo(msg.videoId, msg.result.token) { OnVideoInfoResult(it) }
                     is AuthTokenResult.HasIntent ->

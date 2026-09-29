@@ -27,6 +27,8 @@ import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.data.YoutubeRepository.PlaylistItem.Snippet.ResourceId
 import com.lambdasoup.watchlater.data.YoutubeRepository.Playlists.Playlist
 import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -100,10 +102,13 @@ class YoutubeRepository(
             httpClient.networkInterceptors().add(loggingInterceptor)
         }
 
+        val moshi = Moshi.Builder()
+            .addLast(KotlinJsonAdapterFactory())
+            .build()
         val retrofitBuilder = Retrofit.Builder()
             .baseUrl(baseUrl)
-                .addConverterFactory(MoshiConverterFactory.create())
-                .client(httpClient.build())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(httpClient.build())
         retrofit = retrofitBuilder.build()
         api = retrofit.create(YoutubeApi::class.java)
     }
@@ -118,11 +123,30 @@ class YoutubeRepository(
                 .apply()
     }
 
-    fun getVideoInfo(videoId: String, token: String): VideoInfoResult {
-        val auth = "Bearer $token"
+    fun getApiKey(): String? {
+        val saved = sharedPreferences.getString(PREF_API_KEY, null)?.trim()
+        if (!saved.isNullOrEmpty()) return saved
+        val buildKey = BuildConfig.YOUTUBE_API_KEY.trim()
+        return buildKey.ifEmpty { null }
+    }
+
+    fun setApiKey(apiKey: String?) {
+        sharedPreferences.edit()
+            .putString(PREF_API_KEY, apiKey?.trim())
+            .apply()
+    }
+
+    fun getVideoInfo(videoId: String, token: String?): VideoInfoResult {
+        val apiKey = getApiKey()
         val response: Response<Videos>
         try {
-            response = api.listVideos(videoId, auth).execute()
+            response = if (!token.isNullOrEmpty()) {
+                api.listVideosWithAuth(videoId, "Bearer $token").execute()
+            } else if (!apiKey.isNullOrEmpty()) {
+                api.listVideosWithKey(videoId, apiKey).execute()
+            } else {
+                return VideoInfoResult.Error(ErrorType.NeedAccess)
+            }
         } catch (e: IOException) {
             return VideoInfoResult.Error(ErrorType.Network)
         }
@@ -213,9 +237,15 @@ class YoutubeRepository(
         ): Call<PlaylistItem?>
 
         @GET("videos?part=snippet,contentDetails&maxResults=1")
-        fun listVideos(
+        fun listVideosWithAuth(
                 @Query("id") id: String,
                 @Header("Authorization") auth: String,
+        ): Call<Videos>
+
+        @GET("videos?part=snippet,contentDetails&maxResults=1")
+        fun listVideosWithKey(
+                @Query("id") id: String,
+                @Query("key") key: String,
         ): Call<Videos>
 
         @GET("playlists?part=snippet&mine=true")
@@ -360,5 +390,6 @@ class YoutubeRepository(
 
         private const val PREF_PLAYLIST_ID = "playlist-id"
         private const val PREF_PLAYLIST_TITLE = "playlist-title"
+        private const val PREF_API_KEY = "pref_youtube_api_key"
     }
 }
