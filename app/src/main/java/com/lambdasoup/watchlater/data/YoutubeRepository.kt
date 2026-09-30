@@ -23,6 +23,7 @@ package com.lambdasoup.watchlater.data
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.data.YoutubeRepository.PlaylistItem.Snippet.ResourceId
 import com.lambdasoup.watchlater.data.YoutubeRepository.Playlists.Playlist
@@ -48,56 +49,36 @@ class YoutubeRepository(
     private val retrofit: Retrofit
     private val api: YoutubeApi
 
-    private class TargetPlaylistLiveData(
-        private val sharedPreferences: SharedPreferences,
-    ) : LiveData<Playlist?>(), SharedPreferences.OnSharedPreferenceChangeListener {
-
-        init {
-            update()
-        }
-
-        private fun update() {
-            val playlistId = sharedPreferences.getString(PREF_PLAYLIST_ID, null)
-            val playlistTitle = sharedPreferences.getString(PREF_PLAYLIST_TITLE, null)
-
-            if (playlistId == null || playlistTitle == null) {
-                postValue(null)
-                return
-            }
-
-            postValue(
-                Playlist(
-                    id = playlistId,
-                    snippet = Playlist.Snippet(title = playlistTitle)
-                )
-            )
-        }
-
-        override fun onActive() {
-            super.onActive()
-            sharedPreferences.registerOnSharedPreferenceChangeListener(this)
-        }
-
-        override fun onInactive() {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-            super.onInactive()
-        }
-
-        override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-            if (key !in setOf(PREF_PLAYLIST_ID, PREF_PLAYLIST_TITLE)) {
-                return
-            }
-
-            update()
-        }
-    }
-
-    private val _targetPlaylist = TargetPlaylistLiveData(sharedPreferences)
+    private val _targetPlaylist = MutableLiveData<Playlist?>()
 
     val targetPlaylist: LiveData<Playlist?>
         get() = _targetPlaylist
 
+    private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key in setOf(PREF_PLAYLIST_ID, PREF_PLAYLIST_TITLE)) {
+            updateTargetPlaylist()
+        }
+    }
+
+    private fun updateTargetPlaylist() {
+        val playlistId = sharedPreferences.getString(PREF_PLAYLIST_ID, null)
+        val playlistTitle = sharedPreferences.getString(PREF_PLAYLIST_TITLE, null)
+
+        val playlist: Playlist? = if (playlistId != null && playlistTitle != null) {
+            Playlist(
+                id = playlistId,
+                snippet = Playlist.Snippet(title = playlistTitle)
+            )
+        } else {
+            null
+        }
+        _targetPlaylist.postValue(playlist)
+    }
+
     init {
+        updateTargetPlaylist()
+        sharedPreferences.registerOnSharedPreferenceChangeListener(prefListener)
+
         val httpClient = OkHttpClient.Builder()
         if (BuildConfig.DEBUG) {
             val loggingInterceptor = HttpLoggingInterceptor()
