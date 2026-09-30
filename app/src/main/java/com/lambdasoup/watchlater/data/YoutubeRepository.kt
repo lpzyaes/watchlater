@@ -48,30 +48,31 @@ class YoutubeRepository(
     private val retrofit: Retrofit
     private val api: YoutubeApi
 
-    private val _targetPlaylist =
-        object : LiveData<Playlist?>(), SharedPreferences.OnSharedPreferenceChangeListener {
+    private class TargetPlaylistLiveData(
+        private val sharedPreferences: SharedPreferences,
+    ) : LiveData<Playlist?>(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-            init {
-                update()
+        init {
+            update()
+        }
+
+        private fun update() {
+            val playlistId = sharedPreferences.getString(PREF_PLAYLIST_ID, null)
+            val playlistTitle = sharedPreferences.getString(PREF_PLAYLIST_TITLE, null)
+
+            if (playlistId == null || playlistTitle == null) {
+                postValue(null)
+                return
             }
 
-            private fun update() {
-                val playlistId = sharedPreferences.getString(PREF_PLAYLIST_ID, null)
-                val playlistTitle = sharedPreferences.getString(PREF_PLAYLIST_TITLE, null)
-
-                if (playlistId == null || playlistTitle == null) {
-                    postValue(null)
-                    return
-                }
-
-                postValue(
-                    Playlist(
-                        id = playlistId,
-                        snippet = Playlist.Snippet(title = playlistTitle)
-                    )
+            postValue(
+                Playlist(
+                    id = playlistId,
+                    snippet = Playlist.Snippet(title = playlistTitle)
                 )
-            }
-        
+            )
+        }
+
         override fun onActive() {
             super.onActive()
             sharedPreferences.registerOnSharedPreferenceChangeListener(this)
@@ -90,6 +91,8 @@ class YoutubeRepository(
             update()
         }
     }
+
+    private val _targetPlaylist = TargetPlaylistLiveData(sharedPreferences)
 
     val targetPlaylist: LiveData<Playlist?>
         get() = _targetPlaylist

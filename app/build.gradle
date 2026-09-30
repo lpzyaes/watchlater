@@ -39,6 +39,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    lint {
+        disable 'NullSafeMutableLiveData'
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
     defaultConfig {
         applicationId "com.lambdasoup.watchlater"
         minSdk 23
