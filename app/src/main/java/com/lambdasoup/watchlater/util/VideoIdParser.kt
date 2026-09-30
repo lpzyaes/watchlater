@@ -25,12 +25,12 @@ import android.net.Uri
 
 class VideoIdParser {
     fun parseVideoId(uri: Uri): String? {
-        // e.g. vnd.youtube:jqxENMKaeCU
+        // e.g. vnd.youtube:EyYb7obDgcI
         if (uri.isOpaque) {
             return uri.schemeSpecificPart
         }
 
-        // e.g. https://www.youtube.com/watch?v=jqxENMKaeCU
+        // e.g. https://www.youtube.com/watch?v=EyYb7obDgcI
         var videoId = uri.getQueryParameter("v")
         if (videoId != null) {
             return videoId
@@ -54,7 +54,7 @@ class VideoIdParser {
 
         // e.g. http://www.youtube.com/v/OdT9z-JjtJk
         // http://www.youtube.com/embed/UkWd0azv3fQ
-        // http://youtu.be/jqxENMKaeCU
+        // http://youtu.be/EyYb7obDgcI
         return uri.lastPathSegment
     }
 }

@@ -33,13 +33,26 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.R
@@ -143,24 +156,130 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
         }
     }
 
-    class PlaylistSelectionDialogFragment : DialogFragment(), DialogInterface.OnClickListener {
+    data class PlaylistItemEntry(val id: String, val title: String)
+
+    class PlaylistSelectionDialogFragment : DialogFragment() {
+
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            val titles = requireArguments().getStringArray(ARG_TITLES)
+            val titles = requireArguments().getStringArray(ARG_TITLES) ?: emptyArray()
+            val ids = requireArguments().getStringArray(ARG_IDS) ?: emptyArray()
+
+            val activity = requireActivity() as AddActivity
+            val youtubeRepository = activity.youtubeRepository
 
             val builder = MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.playlist_selection_title)
 
-            if (titles == null || titles.isNotEmpty()) {
-                builder.setItems(titles, this)
-                builder.setNeutralButton(R.string.playlist_selection_edit) { _, _ ->
-                    (context as AddActivity).openWithYoutube(playVideo = false)
+            if (titles.isNotEmpty()) {
+                val allEntries = ids.indices.map { i ->
+                    PlaylistItemEntry(ids[i], titles[i])
                 }
 
+                var currentSort = youtubeRepository.getPlaylistSortOrder()
+                val displayedEntries = mutableListOf<PlaylistItemEntry>()
+
+                val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_playlist_selection, null)
+                val searchInput = view.findViewById<EditText>(R.id.playlist_search_input)
+                val sortButton = view.findViewById<MaterialButton>(R.id.playlist_sort_button)
+                val listView = view.findViewById<ListView>(R.id.playlist_list_view)
+                val emptyText = view.findViewById<TextView>(R.id.playlist_empty_text)
+
+                fun updateSortButtonLabel() {
+                    sortButton.text = if (currentSort == YoutubeRepository.PlaylistSortOrder.ALPHABETICAL) {
+                        getString(R.string.sort_az)
+                    } else {
+                        getString(R.string.sort_recent)
+                    }
+                }
+
+                fun applyFilterAndSort() {
+                    val query = searchInput.text.toString().trim()
+                    val filtered = if (query.isEmpty()) {
+                        allEntries
+                    } else {
+                        allEntries.filter { it.title.contains(query, ignoreCase = true) }
+                    }
+
+                    val sorted = when (currentSort) {
+                        YoutubeRepository.PlaylistSortOrder.ALPHABETICAL -> {
+                            filtered.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title })
+                        }
+                        YoutubeRepository.PlaylistSortOrder.RECENTLY_ADDED -> {
+                            filtered.sortedWith(
+                                compareByDescending<PlaylistItemEntry> { youtubeRepository.getPlaylistLastUsed(it.id) }
+                                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+                            )
+                        }
+                    }
+
+                    displayedEntries.clear()
+                    displayedEntries.addAll(sorted)
+                    (listView.adapter as? ArrayAdapter<*>)?.notifyDataSetChanged()
+
+                    emptyText.visibility = if (displayedEntries.isEmpty()) View.VISIBLE else View.GONE
+                    listView.visibility = if (displayedEntries.isEmpty()) View.GONE else View.VISIBLE
+                }
+
+                val adapter = object : ArrayAdapter<PlaylistItemEntry>(requireContext(), R.layout.item_account_choice, displayedEntries) {
+                    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                        val row = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_account_choice, parent, false)
+                        val iconView = row.findViewById<ImageView>(R.id.account_item_icon)
+                        val textView = row.findViewById<TextView>(R.id.account_item_text)
+                        iconView.setImageResource(R.drawable.ic_playlist)
+                        val iconColor = ContextCompat.getColor(context, R.color.mat_lightblue_600)
+                        iconView.setColorFilter(iconColor)
+                        val item = getItem(position)!!
+                        textView.text = item.title
+                        textView.setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+                        return row
+                    }
+                }
+
+                listView.adapter = adapter
+                listView.setOnItemClickListener { _, _, position, _ ->
+                    val selected = displayedEntries[position]
+                    activity.vm.selectPlaylist(
+                        YoutubeRepository.Playlists.Playlist(
+                            id = selected.id,
+                            snippet = YoutubeRepository.Playlists.Playlist.Snippet(title = selected.title)
+                        )
+                    )
+                    dismiss()
+                }
+
+                updateSortButtonLabel()
+                applyFilterAndSort()
+
+                sortButton.setOnClickListener {
+                    currentSort = if (currentSort == YoutubeRepository.PlaylistSortOrder.ALPHABETICAL) {
+                        YoutubeRepository.PlaylistSortOrder.RECENTLY_ADDED
+                    } else {
+                        YoutubeRepository.PlaylistSortOrder.ALPHABETICAL
+                    }
+                    youtubeRepository.setPlaylistSortOrder(currentSort)
+                    updateSortButtonLabel()
+                    applyFilterAndSort()
+                }
+
+                searchInput.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        applyFilterAndSort()
+                    }
+                    override fun afterTextChanged(s: Editable?) {}
+                })
+
+                builder.setView(view)
+                builder.setNeutralButton(R.string.playlist_selection_edit) { _, _ ->
+                    activity.openWithYoutube(playVideo = false)
+                }
+                builder.setNegativeButton(android.R.string.cancel, null)
             } else {
                 builder.setMessage(R.string.playlist_selection_message)
                 builder.setNeutralButton(R.string.playlist_selection_create) { _, _ ->
-                    (context as AddActivity).openWithYoutube(playVideo = false)
+                    activity.openWithYoutube(playVideo = false)
                 }
+                builder.setNegativeButton(android.R.string.cancel, null)
             }
 
             return builder.create()
@@ -172,23 +291,10 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
             const val ARG_TITLES = "titles"
         }
 
-        override fun onClick(dialog: DialogInterface, which: Int) {
-            val titles = requireArguments().getStringArray(ARG_TITLES)
-            val ids = requireArguments().getStringArray(ARG_IDS)
-
-            (context as AddActivity).vm.selectPlaylist(
-                YoutubeRepository.Playlists.Playlist(
-                    id = ids!![which],
-                    snippet = YoutubeRepository.Playlists.Playlist.Snippet(
-                            title = titles!![which]
-                    )
-            ))
-        }
-
         override fun onDismiss(dialog: DialogInterface) {
             super.onDismiss(dialog)
 
-            (context as AddActivity).vm.clearPlaylists()
+            (activity as? AddActivity)?.vm?.clearPlaylists()
         }
     }
 
@@ -260,49 +366,74 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
         }
     }
 
+    private data class AccountChoice(
+        val title: String,
+        @DrawableRes val iconRes: Int,
+        val action: () -> Unit
+    )
+
     private fun askForAccount() {
         val accounts = accountRepository.getAvailableAccounts()
-        val items = mutableListOf<String>()
-        val actions = mutableListOf<() -> Unit>()
+        val choices = mutableListOf<AccountChoice>()
 
         if (accounts.isNotEmpty()) {
             for (acc in accounts) {
-                items.add(acc.name)
-                actions.add {
-                    vm.setAccount(acc)
+                choices.add(
+                    AccountChoice(acc.name, R.drawable.ic_account) {
+                        vm.setAccount(acc)
+                    }
+                )
+            }
+        }
+
+        choices.add(
+            AccountChoice(getString(R.string.choose_account_system), R.drawable.ic_add_account) {
+                try {
+                    val intent = newChooseAccountIntent()
+                    startActivityForResult(intent, REQUEST_ACCOUNT)
+                } catch (e: Exception) {
+                    Toast.makeText(this, R.string.error_account_picker, Toast.LENGTH_SHORT).show()
+                    showManualAccountDialog()
                 }
             }
-        }
+        )
 
-        items.add(getString(R.string.choose_account_system))
-        actions.add {
-            try {
-                val intent = newChooseAccountIntent()
-                startActivityForResult(intent, REQUEST_ACCOUNT)
-            } catch (e: Exception) {
-                Toast.makeText(this, R.string.error_account_picker, Toast.LENGTH_SHORT).show()
+        choices.add(
+            AccountChoice(getString(R.string.enter_account_manually), R.drawable.ic_edit) {
                 showManualAccountDialog()
             }
-        }
+        )
 
-        items.add(getString(R.string.enter_account_manually))
-        actions.add {
-            showManualAccountDialog()
+        val adapter = object : ArrayAdapter<AccountChoice>(this, R.layout.item_account_choice, choices) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_account_choice, parent, false)
+                val item = getItem(position)!!
+                val iconView = view.findViewById<ImageView>(R.id.account_item_icon)
+                val textView = view.findViewById<TextView>(R.id.account_item_text)
+                iconView.setImageResource(item.iconRes)
+                val iconColor = ContextCompat.getColor(context, R.color.mat_lightblue_600)
+                iconView.setColorFilter(iconColor)
+                textView.text = item.title
+                textView.setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+                return view
+            }
         }
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.choose_account)
-            .setItems(items.toTypedArray()) { _, which ->
-                actions[which].invoke()
+            .setAdapter(adapter) { _, which ->
+                choices[which].action()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
     private fun showManualAccountDialog() {
-        val editText = android.widget.EditText(this).apply {
+        val editText = EditText(this).apply {
             hint = getString(R.string.enter_account_hint)
             setSingleLine()
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }
@@ -322,11 +453,13 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
     private fun showApiKeyDialog() {
         val currentKey = youtubeRepository.getApiKey() ?: ""
-        val editText = android.widget.EditText(this).apply {
+        val editText = EditText(this).apply {
             hint = "AIzaSy..."
             setText(currentKey)
             setSelection(text.length)
             setSingleLine()
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }

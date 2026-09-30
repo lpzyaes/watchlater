@@ -27,4 +27,8 @@
     <color name="mat_card_window_background">@color/design_dark_default_color_background</color>
     <color name="statusBar">@color/design_dark_default_color_surface</color>
 
+    <color name="dialog_surface">#252528</color>
+    <color name="dialog_text_primary">#F4F4F6</color>
+    <color name="dialog_text_secondary">#C7C5D0</color>
+
 </resources>

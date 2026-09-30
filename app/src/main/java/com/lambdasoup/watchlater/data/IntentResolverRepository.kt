@@ -88,6 +88,6 @@ class IntentResolverRepository(
 
     companion object {
         private const val ACTIVITY_WATCHLATER = "com.lambdasoup.watchlater.ui.AddActivity"
-        private const val EXAMPLE_URI = "https://www.youtube.com/watch?v=tntOCGkgt98"
+        private const val EXAMPLE_URI = "https://www.youtube.com/watch?v=EyYb7obDgcI"
     }
 }

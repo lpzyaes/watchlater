@@ -117,10 +117,57 @@ class YoutubeRepository(
             retrofit.responseBodyConverter(YouTubeError::class.java, arrayOfNulls(0))
 
     fun setPlaylist(playlist: Playlist?) {
+        if (playlist != null) {
+            markPlaylistUsed(playlist.id)
+        }
         sharedPreferences.edit()
                 .putString(PREF_PLAYLIST_TITLE, playlist?.snippet?.title)
                 .putString(PREF_PLAYLIST_ID, playlist?.id)
                 .apply()
+    }
+
+    enum class PlaylistSortOrder {
+        ALPHABETICAL,
+        RECENTLY_ADDED
+    }
+
+    fun getPlaylistSortOrder(): PlaylistSortOrder {
+        val pref = sharedPreferences.getString(PREF_PLAYLIST_SORT_ORDER, PlaylistSortOrder.ALPHABETICAL.name)
+        return try {
+            PlaylistSortOrder.valueOf(pref ?: PlaylistSortOrder.ALPHABETICAL.name)
+        } catch (e: Exception) {
+            PlaylistSortOrder.ALPHABETICAL
+        }
+    }
+
+    fun setPlaylistSortOrder(order: PlaylistSortOrder) {
+        sharedPreferences.edit()
+            .putString(PREF_PLAYLIST_SORT_ORDER, order.name)
+            .apply()
+    }
+
+    fun markPlaylistUsed(playlistId: String) {
+        sharedPreferences.edit()
+            .putLong(PREF_PLAYLIST_LAST_USED_PREFIX + playlistId, System.currentTimeMillis())
+            .apply()
+    }
+
+    fun getPlaylistLastUsed(playlistId: String): Long {
+        return sharedPreferences.getLong(PREF_PLAYLIST_LAST_USED_PREFIX + playlistId, 0L)
+    }
+
+    fun sortPlaylists(items: List<Playlists.Playlist>, order: PlaylistSortOrder = getPlaylistSortOrder()): List<Playlists.Playlist> {
+        return when (order) {
+            PlaylistSortOrder.ALPHABETICAL -> {
+                items.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.snippet.title })
+            }
+            PlaylistSortOrder.RECENTLY_ADDED -> {
+                items.sortedWith(
+                    compareByDescending<Playlists.Playlist> { getPlaylistLastUsed(it.id) }
+                        .thenBy(String.CASE_INSENSITIVE_ORDER) { it.snippet.title }
+                )
+            }
+        }
     }
 
     fun getApiKey(): String? {
@@ -181,26 +228,34 @@ class YoutubeRepository(
             return AddVideoResult.Error(translateError(response), token)
         }
 
+        playlist.id.let { markPlaylistUsed(it) }
         return AddVideoResult.Success
     }
 
     fun getPlaylists(token: String): PlaylistsResult {
         val auth = "Bearer $token"
+        val allPlaylists = mutableListOf<Playlists.Playlist>()
+        var pageToken: String? = null
 
-        val response: Response<Playlists>
-        try {
-            response = api.getPlaylists(maxResults = 50, auth = auth).execute()
-        } catch (e: IOException) {
-            return PlaylistsResult.Error(ErrorType.Network)
-        }
+        do {
+            val response: Response<Playlists>
+            try {
+                response = api.getPlaylists(maxResults = 50, auth = auth, pageToken = pageToken).execute()
+            } catch (e: IOException) {
+                return PlaylistsResult.Error(ErrorType.Network)
+            }
 
-        if (!response.isSuccessful) {
-            return PlaylistsResult.Error(translateError(response))
-        }
+            if (!response.isSuccessful) {
+                return PlaylistsResult.Error(translateError(response))
+            }
 
-        val playlists = response.body() ?: return PlaylistsResult.Error(ErrorType.Other)
+            val playlists = response.body() ?: return PlaylistsResult.Error(ErrorType.Other)
+            allPlaylists.addAll(playlists.items)
+            pageToken = playlists.nextPageToken
+        } while (!pageToken.isNullOrEmpty())
 
-        return PlaylistsResult.Ok(playlists)
+        val sorted = sortPlaylists(allPlaylists)
+        return PlaylistsResult.Ok(Playlists(items = sorted))
     }
 
     enum class ErrorType {
@@ -252,6 +307,7 @@ class YoutubeRepository(
         fun getPlaylists(
                 @Query("maxResults") maxResults: Int,
                 @Header("Authorization") auth: String,
+                @Query("pageToken") pageToken: String? = null,
         ): Call<Playlists>
     }
 
@@ -338,6 +394,7 @@ class YoutubeRepository(
     @JsonClass(generateAdapter = true)
     data class Playlists(
             val items: List<Playlist>,
+            val nextPageToken: String? = null,
     ) {
 
         @JsonClass(generateAdapter = true)
@@ -391,5 +448,7 @@ class YoutubeRepository(
         private const val PREF_PLAYLIST_ID = "playlist-id"
         private const val PREF_PLAYLIST_TITLE = "playlist-title"
         private const val PREF_API_KEY = "pref_youtube_api_key"
+        private const val PREF_PLAYLIST_SORT_ORDER = "pref_playlist_sort_order"
+        private const val PREF_PLAYLIST_LAST_USED_PREFIX = "pref_playlist_last_used_"
     }
 }

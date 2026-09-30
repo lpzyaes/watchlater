@@ -81,4 +81,8 @@
     <string name="enter_account_title">Enter Google Account</string>
     <string name="enter_account_hint">user@gmail.com</string>
     <string name="error_account_picker">Could not open account picker</string>
+    <string name="playlist_search_hint">Filter playlists…</string>
+    <string name="sort_az">A–Z</string>
+    <string name="sort_recent">Recent</string>
+    <string name="no_matching_playlists">No matching playlists found</string>
 </resources>

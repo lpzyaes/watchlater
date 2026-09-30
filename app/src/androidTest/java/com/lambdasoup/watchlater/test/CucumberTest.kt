@@ -88,7 +88,7 @@ class CucumberTest {
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest) =
                 when (request.path) {
-                    "/videos?part=snippet,contentDetails&maxResults=1&id=dGFSjKuJfrI" ->
+                    "/videos?part=snippet,contentDetails&maxResults=1&id=EyYb7obDgcI" ->
                         MockResponse()
                             .setResponseCode(200)
                             .setBody(VIDEO_INFO_JSON)
@@ -194,7 +194,7 @@ class CucumberTest {
 
     @Then("the video is opened")
     fun videoIsOpened() {
-        Intents.intended(allOf(hasData("https://www.youtube.com/watch?v=dGFSjKuJfrI")))
+        Intents.intended(allOf(hasData("https://www.youtube.com/watch?v=EyYb7obDgcI")))
     }
 
     @Given("the Google account is set")
@@ -246,7 +246,7 @@ class CucumberTest {
             AddActivity::class.java
         )
         intent.action = Intent.ACTION_VIEW
-        intent.data = Uri.parse("https://www.youtube.com/watch?v=dGFSjKuJfrI")
+        intent.data = Uri.parse("https://www.youtube.com/watch?v=EyYb7obDgcI")
         scenario = ActivityScenario.launch(intent)
     }
 
@@ -259,7 +259,7 @@ class CucumberTest {
     fun youtubeOpened() {
         Intents.intended(
             allOf(
-                hasData("https://www.youtube.com/watch?v=dGFSjKuJfrI"),
+                hasData("https://www.youtube.com/watch?v=dGFSjEyYb7obDgcIKuJfrI"),
                 hasAction(Intent.ACTION_VIEW),
                 hasPackage("com.google.android.youtube"),
             )
@@ -277,7 +277,7 @@ class CucumberTest {
             {
                 "items": [
                     {
-                        "id": "dGFSjKuJfrI",
+                        "id": "EyYb7obDgcI",
                         "snippet": {
                             "title": "Test video title",
                             "description": "Test video description",

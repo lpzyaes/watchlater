@@ -34,6 +34,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lambdasoup.watchlater.BuildConfig
 import com.lambdasoup.watchlater.R
@@ -122,6 +123,8 @@ class LauncherActivity : AppCompatActivity() {
             setText(currentKey)
             setSelection(text.length)
             setSingleLine()
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }
@@ -170,7 +173,7 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     companion object {
-        private val EXAMPLE_URI = Uri.parse("https://www.youtube.com/watch?v=dGFSjKuJfrI")
+        private val EXAMPLE_URI = Uri.parse("https://www.youtube.com/watch?v=EyYb7obDgcI")
         private val EXAMPLE_INTENT = Intent(Intent.ACTION_VIEW, EXAMPLE_URI)
     }
 }
