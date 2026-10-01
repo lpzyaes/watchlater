@@ -45,27 +45,18 @@ class AccountRepository(
         updateLiveData()
     }
 
-    private fun getAccount(): Account? {
+    fun getAccount(): Account? {
         val name = sharedPreferences.getString(PREF_KEY_DEFAULT_ACCOUNT_NAME, null) ?: return null
         return Account(name, ACCOUNT_TYPE_GOOGLE)
     }
 
     fun getAvailableAccounts(): List<Account> {
-        val result = mutableListOf<Account>()
-        getAccount()?.let { current ->
-            result.add(current)
-        }
-        try {
-            val systemAccounts = accountManager.getAccountsByType(ACCOUNT_TYPE_GOOGLE)
-            for (acc in systemAccounts) {
-                if (result.none { it.name.equals(acc.name, ignoreCase = true) }) {
-                    result.add(acc)
-                }
-            }
+        return try {
+            accountManager.getAccountsByType(ACCOUNT_TYPE_GOOGLE).toList()
         } catch (e: Exception) {
             Log.w("AccountRepository", "Failed to retrieve accounts: ${e.message}")
+            emptyList()
         }
-        return result
     }
 
     @MainThread

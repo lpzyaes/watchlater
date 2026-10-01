@@ -129,15 +129,8 @@ class AddViewModel(
                     }
                 }
 
-                is SetAccount -> {
-                    accountRepository.put(msg.account)
-                    val updatedModel = model.copy(account = msg.account, videoAdd = VideoAdd.Idle)
-                    if (model.videoId != null && (model.videoInfo is VideoInfo.Error || model.videoInfo is VideoInfo.Progress)) {
-                        updatedModel * getAuthToken { OnVideoInfoTokenResult(it, model.videoId) }
-                    } else {
-                        updatedModel * Cmd.none()
-                    }
-                }
+                is SetAccount -> model.copy(videoAdd = VideoAdd.Idle) *
+                        Cmd.event<Msg> { accountRepository.put(msg.account) }
 
                 is ChangePlaylist ->
                     if (model.account == null) {
