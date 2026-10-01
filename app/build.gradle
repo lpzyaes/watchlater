@@ -46,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.lambdasoup.watchlater"
+        applicationId "com.watchlater.kell"
         minSdk 23
         targetSdk 36
         versionCode version_major * 10000 + version_minor * 100 + version_patch * 1

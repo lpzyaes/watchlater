@@ -73,18 +73,18 @@
     <color name="mat_green_600">#43A047</color>
     <color name="mat_red_600">#E53935</color>
     <color name="mat_red_600_dark">#AB000D</color>
-    <color name="mat_card_window_background">#F0F0F0</color>
+    <color name="mat_card_window_background">#121212</color>
 
-    <color name="dialog_surface">#FFFFFF</color>
-    <color name="dialog_text_primary">#1C1B1F</color>
-    <color name="dialog_text_secondary">#49454F</color>
+    <color name="dialog_surface">#252528</color>
+    <color name="dialog_text_primary">#F4F4F6</color>
+    <color name="dialog_text_secondary">#C7C5D0</color>
 
     <color name="error_color">@color/mat_red_600</color>
     <color name="success_color">@color/mat_green_600</color>
 
     <!-- theme is a customized version of Theme.AppCompat.Dialog.MinWidth -->
-    <style name="Theme.WatchLater.Add">
-        <item name="android:colorBackground">?attr/colorBackgroundFloating</item>
+    <style name="Theme.WatchLater.Add" parent="Theme.WatchLater">
+        <item name="android:colorBackground">@color/dialog_surface</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="colorSurface">@color/dialog_surface</item>
         <item name="colorOnSurface">@color/dialog_text_primary</item>
@@ -116,6 +116,7 @@
         <item name="colorSurface">@color/dialog_surface</item>
         <item name="colorOnSurface">@color/dialog_text_primary</item>
         <item name="android:colorBackground">@color/dialog_surface</item>
+        <item name="backgroundTint">@color/dialog_surface</item>
         <item name="android:textColorPrimary">@color/dialog_text_primary</item>
         <item name="android:textColorSecondary">@color/dialog_text_secondary</item>
         <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.WatchLater.Dialog.Title</item>
@@ -141,7 +142,7 @@
         12% white
         https://material.io/guidelines/components/dividers.html#dividers-types-of-dividers
      -->
-    <color name="divider_color">#dddddd</color>
+    <color name="divider_color">#38383A</color>
 
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>

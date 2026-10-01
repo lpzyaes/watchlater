@@ -30,6 +30,7 @@ import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -507,13 +508,31 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
     private fun newChooseAccountIntent(): Intent {
         val types = arrayOf(ACCOUNT_TYPE_GOOGLE)
         val title = getString(R.string.choose_account)
-        return if (Build.VERSION.SDK_INT < 26) {
-            AccountManager.newChooseAccountIntent(null, null,
-                    types, false, title, null,
-                    null, null)
-        } else AccountManager.newChooseAccountIntent(null, null,
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        // 0 = Dark theme (dark background, light text), 1 = Light theme (light background, dark text)
+        val themeOverride = if (isNightMode) 0 else 1
+
+        val options = Bundle().apply {
+            putInt("overrideTheme", themeOverride)
+            putInt("overrideCustomTheme", themeOverride)
+        }
+
+        val intent = if (Build.VERSION.SDK_INT < 26) {
+            AccountManager.newChooseAccountIntent(
+                null, null,
+                types, false, title, null,
+                null, options
+            )
+        } else {
+            AccountManager.newChooseAccountIntent(
+                null, null,
                 types, title, null, null,
-                null)
+                options
+            )
+        }
+        intent.putExtra("overrideTheme", themeOverride)
+        intent.putExtra("overrideCustomTheme", themeOverride)
+        return intent
     }
 
     private fun openWithYoutube(playVideo: Boolean = true) {
