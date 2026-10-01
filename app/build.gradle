@@ -26,26 +26,6 @@ def version_major = 2
 def version_minor = 3
 def version_patch = 4
 
-def getEnvOrProperty(String key) {
-    def envFile = rootProject.file('.env')
-    if (envFile.exists()) {
-        def props = new Properties()
-        envFile.withInputStream { props.load(it) }
-        if (props.containsKey(key)) {
-            return props.getProperty(key)
-        }
-    }
-    def envExampleFile = rootProject.file('.env.example')
-    if (envExampleFile.exists()) {
-        def props = new Properties()
-        envExampleFile.withInputStream { props.load(it) }
-        if (props.containsKey(key) && props.getProperty(key)) {
-            return props.getProperty(key)
-        }
-    }
-    return project.findProperty(key) ?: System.getenv(key) ?: ''
-}
-
 android {
     namespace 'com.lambdasoup.watchlater'
     compileSdk 36
@@ -72,7 +52,7 @@ android {
         versionCode version_major * 10000 + version_minor * 100 + version_patch * 1
         versionName "$version_major.$version_minor.$version_patch"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "YOUTUBE_API_KEY", "\"${getEnvOrProperty('YOUTUBE_API_KEY')}\""
+        buildConfigField "String", "YOUTUBE_API_KEY", "\"${project.findProperty('YOUTUBE_API_KEY') ?: System.getenv('YOUTUBE_API_KEY') ?: ''}\""
     }
 
     signingConfigs {

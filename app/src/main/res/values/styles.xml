@@ -37,8 +37,8 @@
         <item name="materialButtonOutlinedStyle">@style/Widget.WatchLater.Button.TextButton</item>
         <item name="colorSurface">@color/dialog_surface</item>
         <item name="colorOnSurface">@color/dialog_text_primary</item>
-        <item name="alertDialogTheme">@style/Theme.WatchLater.Dialog</item>
-        <item name="materialAlertDialogTheme">@style/Theme.WatchLater.Dialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.WatchLater.Dialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.WatchLater.Dialog</item>
     </style>
 
     <style name="Widget.WatchLater.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
@@ -83,13 +83,13 @@
     <color name="success_color">@color/mat_green_600</color>
 
     <!-- theme is a customized version of Theme.AppCompat.Dialog.MinWidth -->
-    <style name="Theme.WatchLater.Add" parent="Theme.WatchLater">
+    <style name="Theme.WatchLater.Add">
         <item name="android:colorBackground">?attr/colorBackgroundFloating</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="colorSurface">@color/dialog_surface</item>
         <item name="colorOnSurface">@color/dialog_text_primary</item>
-        <item name="alertDialogTheme">@style/Theme.WatchLater.Dialog</item>
-        <item name="materialAlertDialogTheme">@style/Theme.WatchLater.Dialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.WatchLater.Dialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.WatchLater.Dialog</item>
 
         <item name="android:windowFrame">@null</item>
         <item name="android:windowTitleStyle">@null</item>
@@ -112,11 +112,10 @@
         <item name="android:windowMinWidthMinor">95%</item>
     </style>
 
-    <style name="Theme.WatchLater.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/dialog_background</item>
-        <item name="android:colorBackground">@color/dialog_surface</item>
+    <style name="ThemeOverlay.WatchLater.Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="colorSurface">@color/dialog_surface</item>
         <item name="colorOnSurface">@color/dialog_text_primary</item>
+        <item name="android:colorBackground">@color/dialog_surface</item>
         <item name="android:textColorPrimary">@color/dialog_text_primary</item>
         <item name="android:textColorSecondary">@color/dialog_text_secondary</item>
         <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.WatchLater.Dialog.Title</item>
@@ -125,8 +124,6 @@
         <item name="buttonBarPositiveButtonStyle">@style/Widget.WatchLater.Dialog.Button</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.WatchLater.Dialog.Button</item>
     </style>
-
-    <style name="ThemeOverlay.WatchLater.Dialog" parent="Theme.WatchLater.Dialog" />
 
     <style name="TextAppearance.WatchLater.Dialog.Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
         <item name="android:textColor">@color/dialog_text_primary</item>

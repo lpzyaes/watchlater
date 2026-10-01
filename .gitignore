@@ -17,6 +17,3 @@
 
 # remove api key from git
 app/src/main/res/values/apikey.xml
-.env
-.env.local
-

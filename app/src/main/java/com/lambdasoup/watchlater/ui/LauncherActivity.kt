@@ -118,20 +118,18 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun showApiKeyDialog() {
         val currentKey = youtubeRepository.getApiKey() ?: ""
-        val builder = MaterialAlertDialogBuilder(this)
-        val dialogContext = builder.context
-        val editText = EditText(dialogContext).apply {
+        val editText = EditText(this).apply {
             hint = "AIzaSy..."
             setText(currentKey)
             setSelection(text.length)
             setSingleLine()
-            setTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_primary))
-            setHintTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_secondary))
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }
 
-        builder
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_api_key_title)
             .setMessage(R.string.dialog_api_key_message)
             .setView(editText)

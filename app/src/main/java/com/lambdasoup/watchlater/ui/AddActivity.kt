@@ -404,50 +404,41 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
             }
         )
 
-        val builder = MaterialAlertDialogBuilder(this)
-        val dialogContext = builder.context
-
-        val adapter = object : ArrayAdapter<AccountChoice>(dialogContext, R.layout.item_account_choice, choices) {
+        val adapter = object : ArrayAdapter<AccountChoice>(this, R.layout.item_account_choice, choices) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val view = convertView ?: LayoutInflater.from(parent.context).inflate(R.layout.item_account_choice, parent, false)
+                val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_account_choice, parent, false)
                 val item = getItem(position)!!
                 val iconView = view.findViewById<ImageView>(R.id.account_item_icon)
                 val textView = view.findViewById<TextView>(R.id.account_item_text)
                 iconView.setImageResource(item.iconRes)
-                val iconColor = ContextCompat.getColor(parent.context, R.color.mat_lightblue_600)
+                val iconColor = ContextCompat.getColor(context, R.color.mat_lightblue_600)
                 iconView.setColorFilter(iconColor)
                 textView.text = item.title
-                textView.setTextColor(ContextCompat.getColor(parent.context, R.color.dialog_text_primary))
+                textView.setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
                 return view
             }
         }
 
-        val dialog = builder
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.choose_account)
             .setAdapter(adapter) { _, which ->
                 choices[which].action()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .create()
-
-        dialog.show()
-        dialog.listView?.divider = null
-        dialog.listView?.dividerHeight = 0
+            .show()
     }
 
     private fun showManualAccountDialog() {
-        val builder = MaterialAlertDialogBuilder(this)
-        val dialogContext = builder.context
-        val editText = EditText(dialogContext).apply {
+        val editText = EditText(this).apply {
             hint = getString(R.string.enter_account_hint)
             setSingleLine()
-            setTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_primary))
-            setHintTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_secondary))
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }
 
-        builder
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.enter_account_title)
             .setView(editText)
             .setPositiveButton(R.string.dialog_save) { _, _ ->
@@ -462,20 +453,18 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
     private fun showApiKeyDialog() {
         val currentKey = youtubeRepository.getApiKey() ?: ""
-        val builder = MaterialAlertDialogBuilder(this)
-        val dialogContext = builder.context
-        val editText = EditText(dialogContext).apply {
+        val editText = EditText(this).apply {
             hint = "AIzaSy..."
             setText(currentKey)
             setSelection(text.length)
             setSingleLine()
-            setTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_primary))
-            setHintTextColor(ContextCompat.getColor(dialogContext, R.color.dialog_text_secondary))
+            setTextColor(ContextCompat.getColor(context, R.color.dialog_text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.dialog_text_secondary))
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
         }
 
-        builder
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_api_key_title)
             .setMessage(R.string.dialog_api_key_message)
             .setView(editText)

@@ -30,6 +30,5 @@
     <color name="dialog_surface">#252528</color>
     <color name="dialog_text_primary">#F4F4F6</color>
     <color name="dialog_text_secondary">#C7C5D0</color>
-    <color name="divider_color">#38383C</color>
 
 </resources>
