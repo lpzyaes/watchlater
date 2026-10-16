@@ -363,10 +363,6 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://lambdasoup.com/privacypolicy-watchlater/")))
                 true
             }
-            R.id.menu_store -> {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + BuildConfig.APPLICATION_ID)))
-                true
-            }
             else -> super.onOptionsItemSelected(item)
         }
     }
