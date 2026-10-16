@@ -26,6 +26,11 @@
       tools:context="com.lambdasoup.watchlater.ui.AddActivity">
 
     <item
+        android:id="@+id/menu_preferred_package"
+        android:title="@string/menu_preferred_package"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/menu_api_key"
         android:title="@string/menu_api_key"
         app:showAsAction="never"/>

@@ -92,6 +92,10 @@ class LauncherActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_preferred_package -> {
+                PreferredPlayerDialog.show(this, youtubeRepository)
+                true
+            }
             R.id.menu_api_key -> {
                 showApiKeyDialog()
                 true

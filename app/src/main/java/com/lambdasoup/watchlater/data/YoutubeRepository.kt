@@ -167,6 +167,17 @@ class YoutubeRepository(
             .apply()
     }
 
+    fun getPreferredPackage(): String {
+        return sharedPreferences.getString(PREF_PREFERRED_PACKAGE, PACKAGE_DEFAULT_YOUTUBE) ?: PACKAGE_DEFAULT_YOUTUBE
+    }
+
+    fun setPreferredPackage(packageName: String?) {
+        val value = packageName?.trim() ?: PACKAGE_DEFAULT_YOUTUBE
+        sharedPreferences.edit()
+            .putString(PREF_PREFERRED_PACKAGE, value)
+            .apply()
+    }
+
     fun getVideoInfo(videoId: String, token: String?): VideoInfoResult {
         val apiKey = getApiKey()
         val response: Response<Videos>
@@ -434,5 +445,9 @@ class YoutubeRepository(
         private const val PREF_API_KEY = "pref_youtube_api_key"
         private const val PREF_PLAYLIST_SORT_ORDER = "pref_playlist_sort_order"
         private const val PREF_PLAYLIST_LAST_USED_PREFIX = "pref_playlist_last_used_"
+
+        const val PREF_PREFERRED_PACKAGE = "pref_preferred_package"
+        const val PACKAGE_DEFAULT_YOUTUBE = "com.google.android.youtube"
+        const val PACKAGE_SYSTEM_CHOOSER = "system_chooser"
     }
 }

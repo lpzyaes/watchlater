@@ -85,4 +85,21 @@
     <string name="sort_az">A–Z</string>
     <string name="sort_recent">Recent</string>
     <string name="no_matching_playlists">No matching playlists found</string>
+    <string name="menu_preferred_package">Preferred Player</string>
+    <string name="dialog_preferred_player_title">Preferred Player for \"Watch Now\"</string>
+    <string name="player_official_youtube">Official YouTube</string>
+    <string name="player_system_chooser">System App Chooser (Ask every time)</string>
+    <string name="player_system_chooser_desc">Use default handler or choose at playback</string>
+    <string name="player_custom_option">Enter custom package name…</string>
+    <string name="player_custom_option_desc">Type any installed app package</string>
+    <string name="player_custom_current_title">Custom (%s)</string>
+    <string name="player_not_installed">not installed</string>
+    <string name="dialog_custom_package_title">Preferred App Package</string>
+    <string name="dialog_custom_package_message">Enter the exact package name of your preferred video player (e.g. org.schabi.newpipe or app.revanced.android.youtube).</string>
+    <string name="dialog_custom_package_hint">e.g. org.schabi.newpipe</string>
+    <string name="dialog_reset_youtube">Reset to YouTube</string>
+    <string name="preferred_player_saved">Preferred player set to %s</string>
+    <string name="preferred_player_reset">Preferred player reset to official YouTube</string>
+    <string name="error_preferred_player_missing">Cannot launch %s. The app is probably not installed on your device.</string>
+    <string name="tip_long_press_watch_now">Long-press Watch Now to switch player</string>
 </resources>

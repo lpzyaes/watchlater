@@ -22,5 +22,6 @@
 
 
 
+rootProject.name = "Watch Later"
 include ':app'
 include ':tea'

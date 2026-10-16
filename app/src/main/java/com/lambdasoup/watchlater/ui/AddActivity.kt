@@ -272,13 +272,13 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
                 builder.setView(view)
                 builder.setNeutralButton(R.string.playlist_selection_edit) { _, _ ->
-                    activity.openWithYoutube(playVideo = false)
+                    activity.openWithPreferredPlayer(playVideo = false)
                 }
                 builder.setNegativeButton(android.R.string.cancel, null)
             } else {
                 builder.setMessage(R.string.playlist_selection_message)
                 builder.setNeutralButton(R.string.playlist_selection_create) { _, _ ->
-                    activity.openWithYoutube(playVideo = false)
+                    activity.openWithPreferredPlayer(playVideo = false)
                 }
                 builder.setNegativeButton(android.R.string.cancel, null)
             }
@@ -343,6 +343,10 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_preferred_package -> {
+                showPreferredPlayerDialog()
+                true
+            }
             R.id.menu_api_key -> {
                 showApiKeyDialog()
                 true
@@ -535,27 +539,47 @@ class AddActivity : AppCompatActivity(), ActionView.ActionListener {
         return intent
     }
 
-    private fun openWithYoutube(playVideo: Boolean = true) {
-        try {
-            val youtubeIntent = Intent()
-                .setPackage("com.google.android.youtube")
-                .setAction(Intent.ACTION_VIEW)
+    private fun showPreferredPlayerDialog() {
+        PreferredPlayerDialog.show(this, youtubeRepository)
+    }
 
+    fun openWithPreferredPlayer(playVideo: Boolean = true) {
+        val preferredPackage = youtubeRepository.getPreferredPackage()
+        try {
+            val playerIntent = Intent(Intent.ACTION_VIEW)
             if (playVideo) {
-                youtubeIntent.data = intent.data
+                playerIntent.data = intent.data
             } else {
-                youtubeIntent.data = Uri.parse("https://www.youtube.com/feed/library")
+                playerIntent.data = Uri.parse("https://www.youtube.com/feed/library")
             }
 
-            startActivity(youtubeIntent)
+            val targetIntent = if (preferredPackage == YoutubeRepository.PACKAGE_SYSTEM_CHOOSER) {
+                Intent.createChooser(playerIntent, getString(R.string.action_watchnow))
+            } else {
+                playerIntent.setPackage(preferredPackage)
+                playerIntent
+            }
+
+            startActivity(targetIntent)
             finish()
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.error_youtube_player_missing, Toast.LENGTH_SHORT).show()
+            val msg = if (preferredPackage == YoutubeRepository.PACKAGE_DEFAULT_YOUTUBE) {
+                getString(R.string.error_youtube_player_missing)
+            } else {
+                getString(R.string.error_preferred_player_missing, preferredPackage)
+            }
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            showPreferredPlayerDialog()
         }
     }
 
     override fun onWatchNowClicked() {
-        openWithYoutube()
+        openWithPreferredPlayer()
+    }
+
+    override fun onWatchNowLongClicked(): Boolean {
+        showPreferredPlayerDialog()
+        return true
     }
 
     override fun onWatchLaterClicked(videoId: String) {

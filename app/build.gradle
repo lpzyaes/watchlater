@@ -26,6 +26,28 @@ def version_major = 2
 def version_minor = 3
 def version_patch = 4
 
+def getApiKey() {
+    if (project.hasProperty('YOUTUBE_API_KEY') && project.property('YOUTUBE_API_KEY')) {
+        return project.property('YOUTUBE_API_KEY')
+    }
+    if (System.getenv('YOUTUBE_API_KEY')) {
+        return System.getenv('YOUTUBE_API_KEY')
+    }
+    def envFile = rootProject.file('.env')
+    if (envFile.exists()) {
+        for (String line : envFile.readLines()) {
+            line = line.trim()
+            if (!line.startsWith('#') && line.contains('=')) {
+                def parts = line.split('=', 2)
+                if (parts[0].trim() == 'YOUTUBE_API_KEY') {
+                    return parts[1].trim()
+                }
+            }
+        }
+    }
+    return ''
+}
+
 android {
     namespace 'com.lambdasoup.watchlater'
     compileSdk 36
@@ -52,7 +74,7 @@ android {
         versionCode version_major * 10000 + version_minor * 100 + version_patch * 1
         versionName "$version_major.$version_minor.$version_patch"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "YOUTUBE_API_KEY", "\"${project.findProperty('YOUTUBE_API_KEY') ?: System.getenv('YOUTUBE_API_KEY') ?: ''}\""
+        buildConfigField "String", "YOUTUBE_API_KEY", "\"${getApiKey()}\""
     }
 
     signingConfigs {
@@ -120,7 +142,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
     testImplementation 'com.google.truth:truth:1.0'
-    testImplementation 'org.mockito:mockito-inline:3.3.3'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0'
 
     androidTestImplementation 'androidx.test:core:1.4.0'
@@ -139,6 +161,30 @@ dependencies {
 
     androidTestImplementation "io.cucumber:cucumber-android:4.9.0"
 }
+
+configurations {
+    mockitoAgent
+}
+
+dependencies {
+    mockitoAgent('net.bytebuddy:byte-buddy-agent:1.14.12') {
+        transitive = false
+    }
+}
+
 repositories {
     mavenCentral()
 }
+
+tasks.withType(Test).configureEach {
+    jvmArgumentProviders.add({
+        ["-javaagent:${configurations.mockitoAgent.asPath}".toString()]
+    } as CommandLineArgumentProvider)
+    jvmArgs(
+        "-XX:+EnableDynamicAgentLoading",
+        "-Dnet.bytebuddy.experimental=true",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED"
+    )
+}
+

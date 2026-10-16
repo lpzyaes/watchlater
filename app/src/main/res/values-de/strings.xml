@@ -69,4 +69,21 @@
     <string name="playlist_selection_create">Liste erstellen</string>
     <string name="error_invalid_video_id">Link enthält ungültige Video ID</string>
     <string name="error_video_info_no_account">Video Info kann nur mit ausgewähltem Konto angezeigt werden</string>
+    <string name="menu_preferred_package">Bevorzugter Player</string>
+    <string name="dialog_preferred_player_title">Bevorzugter Player für „Jetzt ansehen“</string>
+    <string name="player_official_youtube">Offizielle YouTube-App</string>
+    <string name="player_system_chooser">System-App-Auswahl (Jedes Mal fragen)</string>
+    <string name="player_system_chooser_desc">Standard-App verwenden oder bei Wiedergabe wählen</string>
+    <string name="player_custom_option">Benutzerdefinierten Paketnamen eingeben…</string>
+    <string name="player_custom_option_desc">Paketnamen einer installierten App eingeben</string>
+    <string name="player_custom_current_title">Benutzerdefiniert (%s)</string>
+    <string name="player_not_installed">nicht installiert</string>
+    <string name="dialog_custom_package_title">Bevorzugter Paketname</string>
+    <string name="dialog_custom_package_message">Gib den genauen Paketnamen deines bevorzugten Players ein (z. B. org.schabi.newpipe oder app.revanced.android.youtube).</string>
+    <string name="dialog_custom_package_hint">z. B. org.schabi.newpipe</string>
+    <string name="dialog_reset_youtube">Auf YouTube zurücksetzen</string>
+    <string name="preferred_player_saved">Bevorzugter Player geändert auf %s</string>
+    <string name="preferred_player_reset">Bevorzugten Player auf offizielle YouTube-App zurückgesetzt</string>
+    <string name="error_preferred_player_missing">Kann %s nicht starten. Ist die App installiert?</string>
+    <string name="tip_long_press_watch_now">„Jetzt ansehen“ gedrückt halten, um Player zu wechseln</string>
 </resources>

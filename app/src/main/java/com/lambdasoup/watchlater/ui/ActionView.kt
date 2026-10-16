@@ -44,6 +44,9 @@ class ActionView @JvmOverloads constructor(
     private val watchNowButton = findViewById<View>(R.id.action_watchnow)
     init {
         watchNowButton.setOnClickListener { listener?.onWatchNowClicked() }
+        watchNowButton.setOnLongClickListener {
+            listener?.onWatchNowLongClicked() ?: false
+        }
     }
 
     private val watchLaterButton = findViewById<View>(R.id.action_watchlater)
@@ -71,6 +74,7 @@ class ActionView @JvmOverloads constructor(
 
     interface ActionListener {
         fun onWatchNowClicked()
+        fun onWatchNowLongClicked(): Boolean = false
         fun onWatchLaterClicked(videoId: String)
     }
 }

@@ -28,6 +28,29 @@
     <!-- for pre-26 -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:host="www.youtube.com" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" android:host="www.youtube.com" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="vnd.youtube" />
+        </intent>
+        <package android:name="com.google.android.youtube" />
+        <package android:name="org.schabi.newpipe" />
+        <package android:name="app.revanced.android.youtube" />
+        <package android:name="com.github.libretube" />
+        <package android:name="org.polymorphicshade.newpipe" />
+        <package android:name="com.brave.browser" />
+        <package android:name="org.mozilla.firefox" />
+        <package android:name="org.videolan.vlc" />
+    </queries>
+
     <application
         android:name=".WatchLaterApplication"
         android:allowBackup="true"
